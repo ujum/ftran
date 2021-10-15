@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ujum/ftran/internal/app"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -15,6 +16,7 @@ const (
 
 func main() {
 	sameExtDir := flag.Bool("oneDir", true, "Flag to move files with the same extensions to one dir")
+	sourceDir := flag.String("sourceDir", "", "Source directory. If empty - use current dir")
 	targetDir := flag.String("targetDir", "result", "Target directory name")
 	affectedExts := flag.String("exts", "", "Restrict a number of affected file extensions (empty string - will affect all extensions).\n"+
 		"The name of an extension must be separated by a comma.\n"+
@@ -23,24 +25,37 @@ func main() {
 		"Use '"+reversePrefix+"' prefix for reverse")
 	flag.Parse()
 
-	workDir, err := os.Getwd()
+	workDir, err := getWorkDir(*sourceDir)
 	if err != nil {
 		fmt.Printf("can't get work directory: %v", err)
 		return
 	}
-
 	dirPathFilterOpt := createResourceFilterOpt(*affectedDirs)
 	fileExtFilterOpt := createResourceFilterOpt(strings.ReplaceAll(*affectedExts, ".", ""))
 	err = app.Run(&app.Options{
 		SameExtDir:   *sameExtDir,
-		WorkDir:      workDir,
+		SourceDir:    workDir,
 		TargetDir:    *targetDir,
 		AffectedExts: fileExtFilterOpt,
 		AffectedDirs: dirPathFilterOpt,
 	})
 	if err != nil {
-		fmt.Printf("error: %v", err)
+		fmt.Printf("\nerror: %v", err)
 	}
+}
+
+func getWorkDir(sourceDir string) (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	if sourceDir != "" {
+		if filepath.IsAbs(sourceDir) {
+			return sourceDir, nil
+		}
+		return filepath.Join(wd, sourceDir), nil
+	}
+	return wd, nil
 }
 
 func createResourceFilterOpt(affectedRes string) *app.ResourceFilterOption {

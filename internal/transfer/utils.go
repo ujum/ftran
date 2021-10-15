@@ -10,6 +10,7 @@ import (
 const (
 	perm      = 0755
 	extPrefix = "ext_"
+	absent    = "absent"
 )
 
 func moveFileToExtDir(sourceDir, targetRootDir, file string) error {
@@ -37,8 +38,12 @@ func createDirIfNotExist(path string) error {
 }
 
 func createExtDir(targetDir, file string) (string, error) {
-	ext := filepath.Join(targetDir, strings.ToUpper(extPrefix+filepath.Ext(file)[1:]))
-	return ext, createDirIfNotExist(ext)
+	fileExt := filepath.Ext(file)
+	if fileExt == "" {
+		fileExt = absent
+	}
+	ext := filepath.Join(targetDir, strings.ToUpper(extPrefix+fileExt[1:]))
+	return ext, createDirIfNotExist(fileExt)
 }
 
 func moveFileToDir(sourceDir, targetDir, file string) error {

@@ -12,7 +12,6 @@ type Options struct {
 	TargetDir    string
 	AffectedExts *ResourceFilterOption
 	AffectedDirs *ResourceFilterOption
-	WorkDir      string
 }
 
 type ResourceFilterOption struct {
@@ -23,8 +22,8 @@ type ResourceFilterOption struct {
 func Run(opt *Options) error {
 	config := &transfer.Config{
 		SameExtDir:    opt.SameExtDir,
-		SourceDir:     opt.WorkDir,
-		TargetDir:     filepath.Join(filepath.Dir(opt.WorkDir), opt.TargetDir),
+		SourceDir:     opt.SourceDir,
+		TargetDir:     filepath.Join(filepath.Dir(opt.SourceDir), opt.TargetDir),
 		FileFilterReg: createFileFilterRegistry(opt.AffectedExts),
 		DirFilterReg:  createDirFilterRegistry(opt.AffectedDirs),
 	}
