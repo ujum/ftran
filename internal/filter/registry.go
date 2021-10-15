@@ -4,19 +4,19 @@ import (
 	"io/fs"
 )
 
-type FilterRegistry struct {
+type Registry struct {
 	filters []ResourceFilter
 }
 
-func NewFilterRegistry(filters ...ResourceFilter) *FilterRegistry {
-	return &FilterRegistry{filters: filters}
+func NewFilterRegistry(filters ...ResourceFilter) *Registry {
+	return &Registry{filters: filters}
 }
 
-func (registry *FilterRegistry) AddFilter(filter ResourceFilter) {
+func (registry *Registry) AddFilter(filter ResourceFilter) {
 	registry.filters = append(registry.filters, filter)
 }
 
-func (registry *FilterRegistry) Apply(info fs.FileInfo, path string) bool {
+func (registry *Registry) Apply(info fs.FileInfo, path string) bool {
 	if len(registry.filters) == 0 {
 		return true
 	}

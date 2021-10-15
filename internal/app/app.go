@@ -34,7 +34,7 @@ func Run(opt *Options) error {
 	return nil
 }
 
-func createDirFilterRegistry(dirPathFilterOpt *ResourceFilterOption) *filter.FilterRegistry {
+func createDirFilterRegistry(dirPathFilterOpt *ResourceFilterOption) *filter.Registry {
 	var dirFilterRegistry = filter.NewFilterRegistry()
 	if dirPathFilterOpt != nil {
 		addDirNameFilter(dirPathFilterOpt, dirFilterRegistry)
@@ -42,7 +42,7 @@ func createDirFilterRegistry(dirPathFilterOpt *ResourceFilterOption) *filter.Fil
 	return dirFilterRegistry
 }
 
-func createFileFilterRegistry(fileExtFilterOpt *ResourceFilterOption) *filter.FilterRegistry {
+func createFileFilterRegistry(fileExtFilterOpt *ResourceFilterOption) *filter.Registry {
 	var fileFilterRegistry = filter.NewFilterRegistry()
 	if fileExtFilterOpt != nil {
 		addExtFileFilter(fileExtFilterOpt, fileFilterRegistry)
@@ -50,7 +50,7 @@ func createFileFilterRegistry(fileExtFilterOpt *ResourceFilterOption) *filter.Fi
 	return fileFilterRegistry
 }
 
-func addDirNameFilter(dirPathFilterOpt *ResourceFilterOption, dirFilterRegistry *filter.FilterRegistry) {
+func addDirNameFilter(dirPathFilterOpt *ResourceFilterOption, dirFilterRegistry *filter.Registry) {
 	var dirNameFilter filter.ResourceFilter = &filter.DirPathFilter{
 		Paths: dirPathFilterOpt.Resources,
 	}
@@ -58,7 +58,7 @@ func addDirNameFilter(dirPathFilterOpt *ResourceFilterOption, dirFilterRegistry 
 	dirFilterRegistry.AddFilter(dirNameFilter)
 }
 
-func addExtFileFilter(fileExtFilterOpt *ResourceFilterOption, fileFilterRegistry *filter.FilterRegistry) {
+func addExtFileFilter(fileExtFilterOpt *ResourceFilterOption, fileFilterRegistry *filter.Registry) {
 	var extFileFilter filter.ResourceFilter = &filter.FileExtFilter{
 		Exts: fileExtFilterOpt.Resources,
 	}
