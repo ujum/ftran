@@ -41,9 +41,11 @@ func createExtDir(targetDir, file string) (string, error) {
 	fileExt := filepath.Ext(file)
 	if fileExt == "" {
 		fileExt = absent
+	} else {
+		fileExt = fileExt[1:]
 	}
-	ext := filepath.Join(targetDir, strings.ToUpper(extPrefix+fileExt[1:]))
-	return ext, createDirIfNotExist(fileExt)
+	ext := filepath.Join(targetDir, strings.ToUpper(extPrefix+fileExt))
+	return ext, createDirIfNotExist(ext)
 }
 
 func moveFileToDir(sourceDir, targetDir, file string) error {

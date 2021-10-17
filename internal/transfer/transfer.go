@@ -21,53 +21,52 @@ func Transfer(config *Config) error {
 	if err != nil {
 		return err
 	}
-	return walkAndMove(config.SourceDir, config.TargetDir, config.SameExtDir, config.FileFilterReg, config.DirFilterReg)
+	return walkAndMove(config)
 }
 
-func walkAndMove(sourceDir, targetDir string, sameExtDir bool, fileFilterReg *filter.Registry,
-	dirFilterReg *filter.Registry) error {
-	fileInfo, err := ioutil.ReadDir(sourceDir)
+func walkAndMove(config *Config) error {
+	fileInfo, err := ioutil.ReadDir(config.SourceDir)
 	if err != nil {
 		fmt.Printf("%v", err)
 		return err
 	}
 	for _, file := range fileInfo {
-		processResource(sourceDir, targetDir, sameExtDir, file, fileFilterReg, dirFilterReg)
+		processResource(config, file)
 	}
 	return nil
 }
 
-func processResource(sourceDir, targetDir string, sameExtDir bool, file fs.FileInfo,
-	fileFilterReg *filter.Registry, dirFilterReg *filter.Registry) {
+func processResource(config *Config, file fs.FileInfo) {
 	if file.IsDir() {
-		processDir(sourceDir, targetDir, sameExtDir, file, fileFilterReg, dirFilterReg)
+		go processDir(*config, file)
 	} else {
-		processFile(sourceDir, targetDir, fileFilterReg, file)
+		processFile(config, file)
 	}
 }
 
-func processFile(sourceDir string, targetDir string, fileFilterReg *filter.Registry, file fs.FileInfo) {
+func processFile(config *Config, file fs.FileInfo) {
 	fileName := file.Name()
-	if fileFilterReg.Apply(file, sourceDir) {
-		if err := moveFileToExtDir(sourceDir, targetDir, fileName); err != nil {
+	if config.FileFilterReg.Apply(file, config.SourceDir) {
+		if err := moveFileToExtDir(config.SourceDir, config.TargetDir, fileName); err != nil {
 			fmt.Printf("can't move file [%s]: %v", fileName, err)
 		}
 	} else {
-		fmt.Printf("skipped file: %s", filepath.Join(sourceDir, fileName))
+		fmt.Printf("skipped file: %s", filepath.Join(config.SourceDir, fileName))
 	}
 }
 
-func processDir(sourceDir string, targetDir string, sameExtDir bool, file fs.FileInfo,
-	fileFilterReg *filter.Registry, dirFilterReg *filter.Registry) {
-	nestedTargetDir, err := getOrCreateNestedTargetDir(targetDir, sameExtDir, file.Name())
+func processDir(config Config, file fs.FileInfo) {
+	nestedTargetDir, err := getOrCreateNestedTargetDir(config.TargetDir, config.SameExtDir, file.Name())
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		return
 	}
-	nestedSourceDir := filepath.Join(sourceDir, file.Name())
-	if dirFilterReg.Apply(file, sourceDir) {
-		if err := walkAndMove(nestedSourceDir, nestedTargetDir, sameExtDir, fileFilterReg, dirFilterReg); err != nil {
-			fmt.Printf("can't read directory %s: %v", sourceDir, err)
+	nestedSourceDir := filepath.Join(config.SourceDir, file.Name())
+	if config.DirFilterReg.Apply(file, config.SourceDir) {
+		config.TargetDir = nestedTargetDir
+		config.SourceDir = nestedSourceDir
+		if err := walkAndMove(&config); err != nil {
+			fmt.Printf("can't read directory %s: %v", config.SourceDir, err)
 		}
 	} else {
 		fmt.Printf("skipped directory: %s", nestedSourceDir)
