@@ -16,7 +16,7 @@ const (
 
 func main() {
 	sameExtDir := flag.Bool("oneDir", true, "Flag to move files with the same extensions to one dir")
-	sourceDir := flag.String("sourceDir", "", "Source directory. If empty - use current dir")
+	sourceDir := flag.String("sourceDir", "", "Source directory.")
 	targetDir := flag.String("targetDir", "result", "Target directory name")
 	affectedExts := flag.String("exts", "", "Restrict a number of affected file extensions (empty string - will affect all extensions).\n"+
 		"The name of an extension must be separated by a comma.\n"+
@@ -24,6 +24,12 @@ func main() {
 	affectedDirs := flag.String("dirs", "", "Restrict a number of affected directories (relative path).\n"+
 		"Use '"+reversePrefix+"' prefix for reverse")
 	flag.Parse()
+
+	if *sourceDir == "" {
+		fmt.Println("-sourceDir argument not provided")
+		flag.Usage()
+		return
+	}
 
 	workDir, err := getWorkDir(*sourceDir)
 	if err != nil {
@@ -45,17 +51,14 @@ func main() {
 }
 
 func getWorkDir(sourceDir string) (string, error) {
+	if filepath.IsAbs(sourceDir) {
+		return sourceDir, nil
+	}
 	wd, err := os.Getwd()
 	if err != nil {
 		return "", err
 	}
-	if sourceDir != "" {
-		if filepath.IsAbs(sourceDir) {
-			return sourceDir, nil
-		}
-		return filepath.Join(wd, sourceDir), nil
-	}
-	return wd, nil
+	return filepath.Join(wd, sourceDir), nil
 }
 
 func createResourceFilterOpt(affectedRes string) *app.ResourceFilterOption {
