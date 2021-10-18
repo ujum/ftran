@@ -39,7 +39,7 @@ func walkAndMove(config *Config) error {
 
 func processResource(config *Config, file fs.FileInfo) {
 	if file.IsDir() {
-		go processDir(*config, file)
+		processDir(*config, file)
 	} else {
 		processFile(config, file)
 	}
