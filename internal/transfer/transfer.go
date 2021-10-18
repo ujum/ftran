@@ -5,6 +5,7 @@ import (
 	"github.com/ujum/ftran/internal/filter"
 	"io/fs"
 	"io/ioutil"
+	"log"
 	"path/filepath"
 )
 
@@ -27,7 +28,7 @@ func Transfer(config *Config) error {
 func walkAndMove(config *Config) error {
 	fileInfo, err := ioutil.ReadDir(config.SourceDir)
 	if err != nil {
-		fmt.Printf("%v", err)
+		log.Printf("%v", err)
 		return err
 	}
 	for _, file := range fileInfo {
@@ -48,17 +49,17 @@ func processFile(config *Config, file fs.FileInfo) {
 	fileName := file.Name()
 	if config.FileFilterReg.Apply(file, config.SourceDir) {
 		if err := moveFileToExtDir(config.SourceDir, config.TargetDir, fileName); err != nil {
-			fmt.Printf("can't move file [%s]: %v", fileName, err)
+			log.Printf("can't move file [%s]: %v", fileName, err)
 		}
 	} else {
-		fmt.Printf("skipped file: %s", filepath.Join(config.SourceDir, fileName))
+		log.Printf("skipped file: %s", filepath.Join(config.SourceDir, fileName))
 	}
 }
 
 func processDir(config Config, file fs.FileInfo) {
 	nestedTargetDir, err := getOrCreateNestedTargetDir(config.TargetDir, config.SameExtDir, file.Name())
 	if err != nil {
-		fmt.Printf("error: %v", err)
+		log.Printf("error: %v", err)
 		return
 	}
 	nestedSourceDir := filepath.Join(config.SourceDir, file.Name())
@@ -66,10 +67,10 @@ func processDir(config Config, file fs.FileInfo) {
 		config.TargetDir = nestedTargetDir
 		config.SourceDir = nestedSourceDir
 		if err := walkAndMove(&config); err != nil {
-			fmt.Printf("can't read directory %s: %v", config.SourceDir, err)
+			log.Printf("can't read directory %s: %v", config.SourceDir, err)
 		}
 	} else {
-		fmt.Printf("skipped directory: %s", nestedSourceDir)
+		log.Printf("skipped directory: %s", nestedSourceDir)
 	}
 }
 

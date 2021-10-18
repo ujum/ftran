@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/ujum/ftran/internal/app"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,14 +26,14 @@ func main() {
 	flag.Parse()
 
 	if *sourceDir == "" {
-		fmt.Println("-sourceDir argument not provided")
+		log.Println("-sourceDir argument not provided")
 		flag.Usage()
 		return
 	}
 
 	workDir, err := getWorkDir(*sourceDir)
 	if err != nil {
-		fmt.Printf("can't get work directory: %v", err)
+		log.Printf("can't get work directory: %v", err)
 		return
 	}
 	dirPathFilterOpt := createResourceFilterOpt(*affectedDirs)
@@ -46,7 +46,7 @@ func main() {
 		AffectedDirs: dirPathFilterOpt,
 	})
 	if err != nil {
-		fmt.Printf("\nerror: %v", err)
+		log.Printf("error: %v", err)
 	}
 }
 

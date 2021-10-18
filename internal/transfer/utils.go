@@ -1,7 +1,7 @@
 package transfer
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -53,7 +53,7 @@ func moveFileToDir(sourceDir, targetDir, file string) error {
 	target := filepath.Join(targetDir, file)
 	err := os.Rename(source, target)
 	if err == nil {
-		fmt.Printf("%s --> %s\n", source, target)
+		log.Printf("%s --> %s\n", source, target)
 	}
 	return err
 }
