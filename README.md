@@ -4,14 +4,46 @@
 
 - before moving structure:
 
-  ![](images/before.png "Before")
-
+```
+resources
+│
+├── res1
+│   └── docs
+│       └── README.md
+├── res2
+│   ├── text1.txt
+│   └── text2.txt
+└── main.html
+```
 
 - moving into same extension dir result:
 
-  ![](images/result_same_ext_dir.png "Same extension directory")
+```
+resources
+│
+├── EXT_HTML
+│   └── main.html
+├── EXT_MD
+│   └── README.md
+└── EXT_TXT
+    ├── text1.txt
+    └── text2.txt
+```
 
 
 - moving into different extension directory result:
 
-  ![](images/result_diff_ext_dir.png "Different extension directory")
+```
+resources
+│
+├── EXT_HTML
+│   └── main.html
+├── res1
+│   └── docs
+│       └── EXT_MD
+│           └── README.md
+└── res2 
+    └── EXT_TXT
+        ├── text1.txt
+        └── text2.txt
+```
