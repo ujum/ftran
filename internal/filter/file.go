@@ -14,8 +14,12 @@ func (filter *FileExtFilter) supports(info fs.FileInfo, path string) bool {
 	if len(filter.Exts) == 0 {
 		return true
 	}
+	fileExt := filepath.Ext(info.Name())
+	if info.Name() != "" {
+		fileExt = fileExt[1:]
+	}
 	for _, ext := range filter.Exts {
-		if ext == strings.ToLower(filepath.Ext(info.Name())[1:]) {
+		if ext == strings.ToLower(fileExt) {
 			return true
 		}
 	}
