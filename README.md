@@ -16,10 +16,10 @@ resources
 └── main.html
 ```
 
-- moving into same extension dir result:
+- moving without saving directory structure into extension directory result:
 
 ```
-resources
+result
 │
 ├── EXT_HTML
 │   └── main.html
@@ -31,10 +31,10 @@ resources
 ```
 
 
-- moving into different extension directory result:
+- moving with saving directory structure into extension directory result:
 
 ```
-resources
+result
 │
 ├── EXT_HTML
 │   └── main.html
