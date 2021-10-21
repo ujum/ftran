@@ -1,4 +1,4 @@
-package pkg
+package ftran
 
 import (
 	"github.com/ujum/ftran/internal/filter"
