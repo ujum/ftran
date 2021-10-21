@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/ujum/ftran/internal/filter"
-	"github.com/ujum/ftran/internal/transfer"
+	"github.com/ujum/ftran/pkg/transfer"
 	"path/filepath"
 )
 
