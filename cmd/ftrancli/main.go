@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/ujum/ftran/internal/app"
+	"github.com/ujum/ftran/pkg"
 	"log"
 	"os"
 	"path/filepath"
@@ -38,7 +38,7 @@ func main() {
 	}
 	dirPathFilterOpt := createResourceFilterOpt(*affectedDirs)
 	fileExtFilterOpt := createResourceFilterOpt(strings.ReplaceAll(*affectedExts, ".", ""))
-	err = app.Run(&app.Options{
+	err = pkg.Run(&pkg.Options{
 		SameExtDir:   *sameExtDir,
 		SourceDir:    workDir,
 		TargetDir:    *targetDir,
@@ -61,14 +61,14 @@ func getWorkDir(sourceDir string) (string, error) {
 	return filepath.Join(wd, sourceDir), nil
 }
 
-func createResourceFilterOpt(affectedRes string) *app.ResourceFilterOption {
+func createResourceFilterOpt(affectedRes string) *pkg.ResourceFilterOption {
 	if affectedRes != "" {
 		inverse := false
 		if strings.HasPrefix(affectedRes, reversePrefix) {
 			inverse = true
 			affectedRes = affectedRes[len(reversePrefix):]
 		}
-		return &app.ResourceFilterOption{
+		return &pkg.ResourceFilterOption{
 			Inverse:   inverse,
 			Resources: strings.Split(strings.ToLower(affectedRes), paramSeparator),
 		}

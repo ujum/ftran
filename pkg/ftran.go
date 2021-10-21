@@ -1,8 +1,8 @@
-package app
+package pkg
 
 import (
 	"github.com/ujum/ftran/internal/filter"
-	"github.com/ujum/ftran/pkg/transfer"
+	"github.com/ujum/ftran/internal/transfer"
 	"path/filepath"
 )
 

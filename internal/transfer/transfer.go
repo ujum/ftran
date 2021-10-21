@@ -47,7 +47,7 @@ func processResource(config *Config, file fs.FileInfo) {
 
 func processFile(config *Config, file fs.FileInfo) {
 	fileName := file.Name()
-	if config.FileFilterReg.Apply(file, config.SourceDir) {
+	if config.FileFilterReg == nil || config.FileFilterReg.Apply(file, config.SourceDir) {
 		if err := moveFileToExtDir(config.SourceDir, config.TargetDir, fileName); err != nil {
 			log.Printf("can't move file [%s]: %v", fileName, err)
 		}
@@ -63,7 +63,7 @@ func processDir(config Config, file fs.FileInfo) {
 		return
 	}
 	nestedSourceDir := filepath.Join(config.SourceDir, file.Name())
-	if config.DirFilterReg.Apply(file, config.SourceDir) {
+	if config.DirFilterReg == nil || config.DirFilterReg.Apply(file, config.SourceDir) {
 		config.TargetDir = nestedTargetDir
 		config.SourceDir = nestedSourceDir
 		if err := walkAndMove(&config); err != nil {
