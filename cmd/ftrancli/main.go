@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/ujum/ftran/internal/transfer"
 	"github.com/ujum/ftran/pkg/ftran"
 	"log"
 	"os"
@@ -36,18 +37,30 @@ func main() {
 		log.Printf("can't get work directory: %v", err)
 		return
 	}
+	var allAffectedExts []*ftran.ResourceFilterOption
+	var allAffectedDirs []*ftran.ResourceFilterOption
 	dirPathFilterOpt := createResourceFilterOpt(*affectedDirs)
-	fileExtFilterOpt := createResourceFilterOpt(strings.ReplaceAll(*affectedExts, ".", ""))
-	err = ftran.Run(&ftran.Options{
-		SameExtDir:   *sameExtDir,
-		SourceDir:    workDir,
-		TargetDir:    *targetDir,
-		AffectedExts: fileExtFilterOpt,
-		AffectedDirs: dirPathFilterOpt,
-	})
-	if err != nil {
-		log.Printf("error: %v", err)
+	if dirPathFilterOpt != nil {
+		allAffectedDirs = append(allAffectedDirs, dirPathFilterOpt)
 	}
+	fileExtFilterOpt := createResourceFilterOpt(strings.ReplaceAll(*affectedExts, ".", ""))
+	if fileExtFilterOpt != nil {
+		allAffectedExts = append(allAffectedExts, fileExtFilterOpt)
+	}
+	resourceLogs := make(chan *transfer.ResourceLog)
+	go func() {
+		err = ftran.Run(&ftran.Options{
+			SameExtDir:   *sameExtDir,
+			SourceDir:    workDir,
+			TargetDir:    filepath.Join(filepath.Dir(workDir), *targetDir),
+			AffectedExts: allAffectedExts,
+			AffectedDirs: allAffectedDirs,
+		}, resourceLogs)
+		if err != nil {
+			log.Printf("error: %v", err)
+		}
+	}()
+	printResourceLogs(resourceLogs)
 }
 
 func getWorkDir(sourceDir string) (string, error) {
@@ -74,4 +87,18 @@ func createResourceFilterOpt(affectedRes string) *ftran.ResourceFilterOption {
 		}
 	}
 	return nil
+}
+
+func printResourceLogs(result chan *transfer.ResourceLog) {
+	for res := range result {
+		if res.Skipped {
+			if res.Error == nil {
+				log.Printf("skipped: %s\n", res.Source)
+			} else {
+				log.Printf("skipped %s\n resource cause: [%v]", res.Source, res.Error)
+			}
+		} else {
+			log.Printf("%s --> %s\n", res.Source, res.Target)
+		}
+	}
 }

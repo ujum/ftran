@@ -1,7 +1,6 @@
 package transfer
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,11 +48,5 @@ func createExtDir(targetDir, file string) (string, error) {
 }
 
 func moveFileToDir(sourceDir, targetDir, file string) error {
-	source := filepath.Join(sourceDir, file)
-	target := filepath.Join(targetDir, file)
-	err := os.Rename(source, target)
-	if err == nil {
-		log.Printf("%s --> %s\n", source, target)
-	}
-	return err
+	return os.Rename(filepath.Join(sourceDir, file), filepath.Join(targetDir, file))
 }

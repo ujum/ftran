@@ -5,9 +5,15 @@ import (
 	"github.com/ujum/ftran/internal/filter"
 	"io/fs"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 )
+
+type ResourceLog struct {
+	Source  string
+	Target  string
+	Skipped bool
+	Error   error
+}
 
 type Config struct {
 	SameExtDir    bool
@@ -17,60 +23,71 @@ type Config struct {
 	DirFilterReg  *filter.Registry
 }
 
-func Transfer(config *Config) error {
+func newResourceLog(nestedSourceDir string, nestedTargetDir string, skipped bool, err error) *ResourceLog {
+	return &ResourceLog{
+		Source:  nestedSourceDir,
+		Target:  nestedTargetDir,
+		Skipped: skipped,
+		Error:   err,
+	}
+}
+
+func Transfer(config *Config, resourceLogs chan *ResourceLog) error {
+	defer close(resourceLogs)
 	err := createDirIfNotExist(config.TargetDir)
 	if err != nil {
 		return err
 	}
-	return walkAndMove(config)
+	return walkAndMove(config, resourceLogs)
 }
 
-func walkAndMove(config *Config) error {
+func walkAndMove(config *Config, resourceLogs chan *ResourceLog) error {
 	fileInfo, err := ioutil.ReadDir(config.SourceDir)
 	if err != nil {
-		log.Printf("%v", err)
 		return err
 	}
 	for _, file := range fileInfo {
-		processResource(config, file)
+		processResource(config, file, resourceLogs)
 	}
 	return nil
 }
 
-func processResource(config *Config, file fs.FileInfo) {
+func processResource(config *Config, file fs.FileInfo, resourceLogs chan *ResourceLog) {
 	if file.IsDir() {
-		processDir(*config, file)
+		processDir(*config, file, resourceLogs)
 	} else {
-		processFile(config, file)
+		processFile(config, file, resourceLogs)
 	}
 }
 
-func processFile(config *Config, file fs.FileInfo) {
+func processFile(config *Config, file fs.FileInfo, resourceLogs chan *ResourceLog) {
 	fileName := file.Name()
+	source := filepath.Join(config.SourceDir, fileName)
+	target := filepath.Join(config.TargetDir, fileName)
 	if config.FileFilterReg == nil || config.FileFilterReg.Apply(file, config.SourceDir) {
 		if err := moveFileToExtDir(config.SourceDir, config.TargetDir, fileName); err != nil {
-			log.Printf("can't move file [%s]: %v", fileName, err)
+			resourceLogs <- newResourceLog(source, target, true, err)
 		}
 	} else {
-		log.Printf("skipped file: %s", filepath.Join(config.SourceDir, fileName))
+		resourceLogs <- newResourceLog(source, target, true, nil)
 	}
 }
 
-func processDir(config Config, file fs.FileInfo) {
+func processDir(config Config, file fs.FileInfo, resourceLogs chan *ResourceLog) {
+	nestedSourceDir := filepath.Join(config.SourceDir, file.Name())
 	nestedTargetDir, err := getOrCreateNestedTargetDir(config.TargetDir, config.SameExtDir, file.Name())
 	if err != nil {
-		log.Printf("error: %v", err)
+		resourceLogs <- newResourceLog(nestedSourceDir, nestedTargetDir, true, err)
 		return
 	}
-	nestedSourceDir := filepath.Join(config.SourceDir, file.Name())
 	if config.DirFilterReg == nil || config.DirFilterReg.Apply(file, config.SourceDir) {
 		config.TargetDir = nestedTargetDir
 		config.SourceDir = nestedSourceDir
-		if err := walkAndMove(&config); err != nil {
-			log.Printf("can't read directory %s: %v", config.SourceDir, err)
+		if err := walkAndMove(&config, resourceLogs); err != nil {
+			resourceLogs <- newResourceLog(nestedSourceDir, nestedTargetDir, true, err)
 		}
 	} else {
-		log.Printf("skipped directory: %s", nestedSourceDir)
+		resourceLogs <- newResourceLog(nestedSourceDir, nestedTargetDir, true, nil)
 	}
 }
 
