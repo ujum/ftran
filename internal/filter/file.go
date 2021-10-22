@@ -15,7 +15,7 @@ func (filter *FileExtFilter) supports(info fs.FileInfo, path string) bool {
 		return true
 	}
 	fileExt := filepath.Ext(info.Name())
-	if info.Name() != "" {
+	if fileExt != "" {
 		fileExt = fileExt[1:]
 	}
 	for _, ext := range filter.Exts {
