@@ -3,6 +3,7 @@ package ftran
 import (
 	"github.com/ujum/ftran/internal/filter"
 	"github.com/ujum/ftran/internal/transfer"
+	"github.com/ujum/ftran/pkg/data"
 )
 
 type Options struct {
@@ -18,7 +19,7 @@ type ResourceFilterOption struct {
 	Resources []string
 }
 
-func Run(opt *Options, resultLogs chan *transfer.ResourceLog) error {
+func Run(opt *Options, resultLogs chan *data.ResourceLog) error {
 	config := &transfer.Config{
 		SameExtDir:    opt.SameExtDir,
 		SourceDir:     opt.SourceDir,

@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"github.com/ujum/ftran/internal/transfer"
+	"github.com/ujum/ftran/pkg/data"
 	"github.com/ujum/ftran/pkg/ftran"
 	"log"
 	"os"
@@ -47,7 +47,7 @@ func main() {
 	if fileExtFilterOpt != nil {
 		allAffectedExts = append(allAffectedExts, fileExtFilterOpt)
 	}
-	resourceLogs := make(chan *transfer.ResourceLog)
+	resourceLogs := make(chan *data.ResourceLog)
 	go func() {
 		err = ftran.Run(&ftran.Options{
 			SameExtDir:   *sameExtDir,
@@ -89,7 +89,7 @@ func createResourceFilterOpt(affectedRes string) *ftran.ResourceFilterOption {
 	return nil
 }
 
-func printResourceLogs(result chan *transfer.ResourceLog) {
+func printResourceLogs(result chan *data.ResourceLog) {
 	for res := range result {
 		if res.Skipped {
 			if res.Error == nil {

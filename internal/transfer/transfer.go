@@ -3,17 +3,11 @@ package transfer
 import (
 	"fmt"
 	"github.com/ujum/ftran/internal/filter"
+	"github.com/ujum/ftran/pkg/data"
 	"io/fs"
 	"io/ioutil"
 	"path/filepath"
 )
-
-type ResourceLog struct {
-	Source  string
-	Target  string
-	Skipped bool
-	Error   error
-}
 
 type Config struct {
 	SameExtDir    bool
@@ -23,16 +17,7 @@ type Config struct {
 	DirFilterReg  *filter.Registry
 }
 
-func newResourceLog(nestedSourceDir string, nestedTargetDir string, skipped bool, err error) *ResourceLog {
-	return &ResourceLog{
-		Source:  nestedSourceDir,
-		Target:  nestedTargetDir,
-		Skipped: skipped,
-		Error:   err,
-	}
-}
-
-func Transfer(config *Config, resourceLogs chan *ResourceLog) error {
+func Transfer(config *Config, resourceLogs chan *data.ResourceLog) error {
 	defer close(resourceLogs)
 	err := createDirIfNotExist(config.TargetDir)
 	if err != nil {
@@ -41,7 +26,7 @@ func Transfer(config *Config, resourceLogs chan *ResourceLog) error {
 	return walkAndMove(config, resourceLogs)
 }
 
-func walkAndMove(config *Config, resourceLogs chan *ResourceLog) error {
+func walkAndMove(config *Config, resourceLogs chan *data.ResourceLog) error {
 	fileInfo, err := ioutil.ReadDir(config.SourceDir)
 	if err != nil {
 		return err
@@ -52,7 +37,7 @@ func walkAndMove(config *Config, resourceLogs chan *ResourceLog) error {
 	return nil
 }
 
-func processResource(config *Config, file fs.FileInfo, resourceLogs chan *ResourceLog) {
+func processResource(config *Config, file fs.FileInfo, resourceLogs chan *data.ResourceLog) {
 	if file.IsDir() {
 		processDir(*config, file, resourceLogs)
 	} else {
@@ -60,34 +45,37 @@ func processResource(config *Config, file fs.FileInfo, resourceLogs chan *Resour
 	}
 }
 
-func processFile(config *Config, file fs.FileInfo, resourceLogs chan *ResourceLog) {
+func processFile(config *Config, file fs.FileInfo, resourceLogs chan *data.ResourceLog) {
 	fileName := file.Name()
 	source := filepath.Join(config.SourceDir, fileName)
 	target := filepath.Join(config.TargetDir, fileName)
+	log := data.NewResourceLog(source, target, false, nil)
 	if config.FileFilterReg == nil || config.FileFilterReg.Apply(file, config.SourceDir) {
 		if err := moveFileToExtDir(config.SourceDir, config.TargetDir, fileName); err != nil {
-			resourceLogs <- newResourceLog(source, target, true, err)
+			log.Error = err
+			log.Skipped = true
 		}
 	} else {
-		resourceLogs <- newResourceLog(source, target, true, nil)
+		log.Skipped = true
 	}
+	resourceLogs <- log
 }
 
-func processDir(config Config, file fs.FileInfo, resourceLogs chan *ResourceLog) {
+func processDir(config Config, file fs.FileInfo, resourceLogs chan *data.ResourceLog) {
 	nestedSourceDir := filepath.Join(config.SourceDir, file.Name())
 	nestedTargetDir, err := getOrCreateNestedTargetDir(config.TargetDir, config.SameExtDir, file.Name())
 	if err != nil {
-		resourceLogs <- newResourceLog(nestedSourceDir, nestedTargetDir, true, err)
+		resourceLogs <- data.NewResourceLog(nestedSourceDir, nestedTargetDir, true, err)
 		return
 	}
 	if config.DirFilterReg == nil || config.DirFilterReg.Apply(file, config.SourceDir) {
 		config.TargetDir = nestedTargetDir
 		config.SourceDir = nestedSourceDir
 		if err := walkAndMove(&config, resourceLogs); err != nil {
-			resourceLogs <- newResourceLog(nestedSourceDir, nestedTargetDir, true, err)
+			resourceLogs <- data.NewResourceLog(nestedSourceDir, nestedTargetDir, true, err)
 		}
 	} else {
-		resourceLogs <- newResourceLog(nestedSourceDir, nestedTargetDir, true, nil)
+		resourceLogs <- data.NewResourceLog(nestedSourceDir, nestedTargetDir, true, nil)
 	}
 }
 
