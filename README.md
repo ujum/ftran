@@ -1,4 +1,6 @@
-# The tool for moving files into directories by file extensions
+# The cli tool for moving files into directories by file extensions
+
+The UI app based on cross platform GUI toolkit: [ftranUI](https://github.com/ujum/ftranUI ) 
 
 ## Example
 
