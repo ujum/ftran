@@ -11,6 +11,7 @@ type FileExtFilter struct {
 }
 
 func (filter *FileExtFilter) supports(info fs.FileInfo, path string) bool {
+	_ = path
 	if len(filter.Exts) == 0 {
 		return true
 	}

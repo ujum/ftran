@@ -52,7 +52,7 @@ func main() {
 		err = ftran.Run(&ftran.Options{
 			SameExtDir:   *sameExtDir,
 			SourceDir:    workDir,
-			TargetDir:    filepath.Join(filepath.Dir(workDir), *targetDir),
+			TargetDir:    filepath.Join(filepath.Dir(workDir), *targetDir) + "_" + filepath.Base(workDir),
 			AffectedExts: allAffectedExts,
 			AffectedDirs: allAffectedDirs,
 		}, resourceLogs)
